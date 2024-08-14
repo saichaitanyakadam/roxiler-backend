@@ -158,18 +158,18 @@ const getCategory = async (req, res) => {
 };
 
 const getCombinedData = async (req, res) => {
-  const { pagination = 0, search = "", month = 3 } = req.query;
+  const { search = "", month = 3 } = req.query;
   const tableData = await fetchData(
-    `http://localhost:4500/api/get-data?pagination=${pagination}&month=${month}&search=${search}`
+    `https://roxiler-backend-hx6o.onrender.com/api/get-data?month=${month}&search=${search}`
   );
   const barChartData = await fetchData(
-    `http://localhost:4500/api/get-barchart-data?month=${month}`
+    `https://roxiler-backend-hx6o.onrender.com/api/get-barchart-data?month=${month}`
   );
   const statsData = await fetchData(
-    `http://localhost:4500/api/get-stats?month=${month}`
+    `https://roxiler-backend-hx6o.onrender.com/api/get-stats?month=${month}`
   );
   const pieChartData = await fetchData(
-    `http://localhost:4500/api/get-categories?month=${month}`
+    `https://roxiler-backend-hx6o.onrender.com/api/get-categories?month=${month}`
   );
 
   res.status(200).json({
@@ -177,6 +177,7 @@ const getCombinedData = async (req, res) => {
     barChartData,
     statsData,
     pieChartData,
+    name: "hello",
   });
 };
 
