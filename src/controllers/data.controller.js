@@ -1,12 +1,12 @@
+import { fetchData } from "../helper/data-fetch.js";
 import Data from "../model/data.model.js";
 
 const postData = async (req, res) => {
   try {
-    const response = await fetch(
+    const { data } = await axios.get(
       "https://s3.amazonaws.com/roxiler.com/product_transaction.json"
     );
-    const postData = await response.json();
-    await Data.insertMany(postData);
+    await Data.insertMany(data);
     res.status(200).send("added successfully");
   } catch (error) {
     res.status(500).send("something went wrong");
@@ -15,17 +15,14 @@ const postData = async (req, res) => {
 
 const getData = async (req, res) => {
   try {
-    const { search, pagination, month } = req.query;
+    const { search = "", month = 3 } = req.query;
 
     const result = await Data.find({
       $or: [
         { title: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } },
       ],
-      $expr: { $eq: [{ $month: "$dateOfSale" }, Number(month)] },
-    })
-      .limit(10)
-      .skip(pagination);
+    });
 
     res.status(200).send(result);
   } catch (error) {
@@ -131,6 +128,11 @@ const getBarChartData = async (req, res) => {
         count: { $sum: 1 },
       },
     },
+    {
+      $sort: {
+        _id: 1,
+      },
+    },
   ]);
   res.status(200).send(result);
 };
@@ -155,4 +157,34 @@ const getCategory = async (req, res) => {
   res.status(200).send(result);
 };
 
-export { postData, getData, getStats, getBarChartData, getCategory };
+const getCombinedData = async (req, res) => {
+  const { pagination = 0, search = "", month = 3 } = req.query;
+  const tableData = await fetchData(
+    `http://localhost:4500/api/get-data?pagination=${pagination}&month=${month}&search=${search}`
+  );
+  const barChartData = await fetchData(
+    `http://localhost:4500/api/get-barchart-data?month=${month}`
+  );
+  const statsData = await fetchData(
+    `http://localhost:4500/api/get-stats?month=${month}`
+  );
+  const pieChartData = await fetchData(
+    `http://localhost:4500/api/get-categories?month=${month}`
+  );
+
+  res.status(200).json({
+    tableData,
+    barChartData,
+    statsData,
+    pieChartData,
+  });
+};
+
+export {
+  postData,
+  getData,
+  getStats,
+  getBarChartData,
+  getCategory,
+  getCombinedData,
+};
